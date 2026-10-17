@@ -1,0 +1,41 @@
+name: Refresh photo gallery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'photos/**'
+      - 'scripts/build_gallery.pl'
+      - '.github/workflows/gallery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gallery-manifest
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out gallery repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Find photos using Perl
+        run: perl scripts/build_gallery.pl
+
+      - name: Publish updated gallery manifest
+        run: |
+          git add gallery.json
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' \
+                -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+                commit -m "Update gallery photo list"
+            git push
+          else
+            echo "Gallery photo list is already current."
+          fi
