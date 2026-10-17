@@ -24,6 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: true
+          fetch-depth: 0 # Required to read each image's latest commit message and description
 
       - name: Find photos using Perl
         run: perl scripts/build_gallery.pl
