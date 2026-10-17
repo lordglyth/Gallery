@@ -41,8 +41,11 @@
     .tile button:hover img,.tile button:focus-visible img{transform:scale(1.045);filter:brightness(1.12)}
     .thumb{aspect-ratio:4/3;overflow:hidden;background:linear-gradient(125deg,#161e46,#37265c);display:flex;align-items:center;justify-content:center}
     .thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .25s,filter .25s}
-    .caption{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
-    .caption strong{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .caption{padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+    .caption-copy{min-width:0;flex:1}
+    .caption strong{display:block;font-size:13px;font-weight:650;line-height:1.35;overflow-wrap:anywhere}
+    .caption-description{font-size:12px;line-height:1.45;white-space:pre-line;color:#c3bfdb;margin:7px 0 0;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3}
+    .caption-description:empty{display:none}
     .caption span{color:var(--cyan);font-size:18px;line-height:1}
     .empty{margin:0 auto 80px;max-width:580px;padding:42px 24px;text-align:center;border:1px dashed #7772b0;background:#141935bb;border-radius:16px}
     .empty .glyph{font-size:56px;color:var(--gold);line-height:1}
@@ -61,6 +64,10 @@
     .viewer-stage img{max-width:100%;max-height:calc(96vh - 132px);width:auto;height:auto;object-fit:contain;display:block}
     .viewer-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 17px;color:#b7b2d0;font-size:12px}
     .viewer-foot a{color:#9cecff}
+    .viewer-description{margin:0;padding:12px 17px 2px;max-height:19vh;overflow-y:auto;white-space:pre-wrap;color:#dcd7f2;font-size:13px;line-height:1.6}
+    dialog[open]{display:flex;flex-direction:column}
+    .viewer-stage{flex:1;min-height:80px}
+    .viewer-stage img{max-height:calc(96vh - 210px)}
     [hidden]{display:none!important}
     @media(max-width:560px){.wrap{width:min(100% - 24px,1340px)}.topbar{min-height:60px}.hero{padding:48px 4px 28px}.moon{font-size:44px}.toolbar{gap:9px;padding:12px}.search-wrap{flex-basis:100%}.sort{flex:1}.count{margin-left:0}.gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.caption{padding:9px 10px}.caption strong{font-size:12px}.viewer-bar{padding:9px}.viewer-controls{gap:5px}.view-btn{min-width:32px;padding:5px 7px}.viewer-title{max-width:38vw;font-size:12px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
@@ -79,7 +86,7 @@
       <div class="moon" aria-hidden="true">☾</div>
       <div class="kicker">A LITTLE GALLERY OF CHAOS</div>
       <h1>Sno's Gallery</h1>
-      <p>Pictures, memories, experiments and whatever else belongs on the wall. New images appear when they're uploaded to GitHub.</p>
+      <p>Pictures, memories, experiments and whatever else belongs on the wall. New images and their GitHub commit captions appear automatically.</p>
       <div class="rule" aria-hidden="true"></div>
     </section>
 
@@ -102,7 +109,7 @@
     </div>
   </main>
 
-  <footer class="footer">✦ SnoPlay · A pocket of moonlit pixels · Powered by Perl &amp; GitHub Pages</footer>
+  <footer class="footer">✦ SnoPlay · A pocket of moonlit pixels · Powered by Perl &amp; GitHub</footer>
 
   <dialog id="viewer" aria-label="Photo viewer">
     <div class="viewer-bar">
@@ -114,6 +121,7 @@
       </div>
     </div>
     <div class="viewer-stage"><img id="viewerImage" alt=""></div>
+    <p id="viewerDescription" class="viewer-description" hidden></p>
     <div class="viewer-foot"><span id="viewerCount"></span><a id="original" target="_blank" rel="noopener noreferrer" href="#">Open original ↗</a></div>
   </dialog>
 
@@ -127,6 +135,7 @@
     const viewer = document.getElementById('viewer');
     const viewerImage = document.getElementById('viewerImage');
     const viewerTitle = document.getElementById('viewerTitle');
+    const viewerDescription = document.getElementById('viewerDescription');
     const viewerCount = document.getElementById('viewerCount');
     const original = document.getElementById('original');
     let pictures = [];
@@ -147,7 +156,7 @@
 
     function render() {
       const term = search.value.trim().toLowerCase();
-      shown = pictures.filter(photo => (photo.title + ' ' + photo.src).toLowerCase().includes(term));
+      shown = pictures.filter(photo => [photo.title, photo.src, photo.commit, photo.description].filter(Boolean).join(' ').toLowerCase().includes(term));
       if (sort.value === 'reverse') shown.reverse();
       if (sort.value === 'random') {
         shown = shown.slice();
@@ -172,7 +181,7 @@
         tile.className = 'tile';
         const button = document.createElement('button');
         button.type = 'button';
-        button.setAttribute('aria-label', 'View ' + photo.title);
+        button.setAttribute('aria-label', 'View ' + (photo.commit || photo.title));
         const thumbnail = document.createElement('div');
         thumbnail.className = 'thumb';
         const img = document.createElement('img');
@@ -184,12 +193,21 @@
         const caption = document.createElement('div');
         caption.className = 'caption';
         const title = document.createElement('strong');
-        title.textContent = photo.title;
-        title.title = photo.title;
+        title.textContent = photo.commit || photo.title;
+        title.title = photo.commit || photo.title;
+        const copy = document.createElement('div');
+        copy.className = 'caption-copy';
+        copy.appendChild(title);
+        if (photo.description) {
+          const description = document.createElement('p');
+          description.className = 'caption-description';
+          description.textContent = photo.description;
+          copy.appendChild(description);
+        }
         const arrow = document.createElement('span');
         arrow.textContent = '↗';
         arrow.setAttribute('aria-hidden', 'true');
-        caption.append(title, arrow);
+        caption.append(copy, arrow);
         button.append(thumbnail, caption);
         button.addEventListener('click', () => openViewer(index));
         tile.appendChild(button);
@@ -205,7 +223,9 @@
       const url = urlFor(photo.src);
       viewerImage.src = url;
       viewerImage.alt = photo.title;
-      viewerTitle.textContent = photo.title;
+      viewerTitle.textContent = photo.commit || photo.title;
+      viewerDescription.textContent = photo.description || '';
+      viewerDescription.hidden = !photo.description;
       viewerCount.textContent = String(current + 1) + ' / ' + String(shown.length);
       original.href = url;
     }
