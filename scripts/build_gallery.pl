@@ -16,6 +16,36 @@ sub utf8_text {
   return decode('UTF-8', $_[0], FB_DEFAULT);
 }
 
+
+# GitHub's upload form has two caption fields:
+#   Commit message      -> caption headline
+#   Extended description -> caption text
+# Read the latest commit affecting THIS image, not the gallery manifest commit.
+# Checkout must use fetch-depth: 0 so git log can find older uploads.
+sub git_caption_for {
+  my ($path) = @_;
+  my $bytes = '';
+
+  if (open my $pipe, '-|', 'git', 'log', '-1', '--format=%B', '--', $path) {
+    local $/;
+    $bytes = <$pipe> // '';
+    close $pipe;
+  }
+
+  my $message = utf8_text($bytes);
+  $message =~ s/\r\n?/\n/g;
+  $message =~ s/\A\s+//;
+  $message =~ s/\s+\z//;
+
+  my ($subject, $description) = split(/\n/, $message, 2);
+  $subject //= '';
+  $description //= '';
+  $subject =~ s/^\s+|\s+$//g;
+  $description =~ s/^\s+|\s+$//g;
+
+  return ($subject, $description);
+}
+
 if (-d $folder) {
   find({
     no_chdir => 1,
@@ -32,7 +62,13 @@ if (-d $folder) {
       $name =~ s/^\s+|\s+$//g;
       my $relative = utf8_text($file);
       my $title = utf8_text($name);
-      push @pictures, { src => $relative, title => $title };
+      my ($commit, $description) = git_caption_for($file);
+      push @pictures, {
+        src => $relative,
+        title => $title,
+        commit => $commit,
+        description => $description,
+      };
     },
   }, $folder);
 }
