@@ -245,8 +245,9 @@
         const manifest = await response.json();
         if (!Array.isArray(manifest.images)) throw new Error('Missing image list');
         pictures = manifest.images.filter(item =>
-          item && typeof item.src === 'string' && /^photos\/[^?#]+$/i.test(item.src) &&
-          !item.src.split('/').includes('..') && typeof item.title === 'string'
+          item && typeof item.src === 'string' && item.src.startsWith('photos/') &&
+          item.src.split('/').every(part => part !== '.' && part !== '..') &&
+          typeof item.title === 'string'
         );
         pictures.sort((a, b) => a.src.localeCompare(b.src, undefined, {numeric:true,sensitivity:'base'}));
         render();
