@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080d24">
+  <meta name="description" content="Sno's Gallery — a collection of pictures, automatically updated from GitHub.">
+  <title>Sno's Gallery — SnoPlay</title>
+  <style>
+    :root{color-scheme:dark;--night:#070b1d;--panel:#141638;--line:#7765b0;--silver:#e9eaff;--muted:#b5b9d7;--cyan:#a6edff;--lav:#d7b7ff;--gold:#ffdfa1}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;min-height:100vh;font:15px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(ellipse at 50% -10%,#333063 0,transparent 55%),linear-gradient(#0a102a,#080a1a 65%);color:var(--silver)}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.43;background-image:radial-gradient(#c9c5ff 1px,transparent 1.4px),radial-gradient(#e6cfff 1px,transparent 1.5px);background-position:8px 17px,66px 92px;background-size:129px 143px,199px 233px;z-index:-1}
+    a{color:var(--cyan)}
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+    :focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+    .wrap{width:min(1340px,calc(100% - 36px));margin:0 auto}
+    header{border-bottom:1px solid #7667ae8c;background:#080c23bf;backdrop-filter:blur(14px)}
+    .topbar{min-height:66px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .brand{font:bold 19px Georgia,serif;letter-spacing:.05em;color:#e9e5ff;text-decoration:none}
+    .brand .star{color:var(--gold);text-shadow:0 0 12px #e3a4ff;margin-right:8px}
+    .back{color:#b6deff;font-size:13px;text-decoration:none;border:1px solid #535b92;border-radius:8px;padding:8px 12px;background:#202449a1}
+    .hero{text-align:center;padding:67px 10px 46px;position:relative}
+    .kicker{text-transform:uppercase;letter-spacing:.24em;color:var(--cyan);font-weight:800;font-size:11px}
+    .moon{font-size:58px;line-height:1;color:var(--gold);filter:drop-shadow(0 0 15px #bfa6ff);margin:0 auto 14px}
+    h1{font:italic bold clamp(3rem,9vw,6rem)/1 Georgia,"Times New Roman",serif;margin:14px 0;color:#e9d9ff;letter-spacing:-.045em;text-shadow:0 4px 0 #281e51,0 0 33px #8460e1}
+    .hero p{margin:12px auto 0;max-width:600px;color:#bfc5ec}
+    .hero .rule{width:140px;height:1px;background:linear-gradient(90deg,transparent,#f8d29c,transparent);margin:30px auto 0}
+    .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 22px;padding:16px;background:linear-gradient(120deg,#191839ef,#111b3def);border:1px solid #655c99;border-radius:13px;box-shadow:0 7px 25px #0005}
+    .search-wrap{display:flex;align-items:center;gap:9px;flex:1 1 250px;min-width:170px;border:1px solid #636d9b;border-radius:8px;background:#0a102a;padding:0 13px}
+    .search-wrap span{font-size:19px;color:#a3bce8}
+    input{width:100%;min-width:0;height:40px;border:0;background:transparent;color:#fff;outline:none}
+    input::placeholder{color:#969ebb}
+    .sort{background:#111934;color:#eee;border:1px solid #626a9c;padding:10px;border-radius:8px;max-width:100%}
+    .count{font-size:13px;color:#b9b5da;white-space:nowrap;margin-left:auto;font-variant-numeric:tabular-nums}
+    .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;padding-bottom:55px}
+    .tile{border:1px solid #675b95;border-radius:12px;background:linear-gradient(#222044,#10132d);overflow:hidden;box-shadow:0 8px 18px #0006;min-width:0}
+    .tile button{display:block;width:100%;border:0;padding:0;text-align:left;background:transparent;color:inherit}
+    .tile button:hover img,.tile button:focus-visible img{transform:scale(1.045);filter:brightness(1.12)}
+    .thumb{aspect-ratio:4/3;overflow:hidden;background:linear-gradient(125deg,#161e46,#37265c);display:flex;align-items:center;justify-content:center}
+    .thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .25s,filter .25s}
+    .caption{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .caption strong{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .caption span{color:var(--cyan);font-size:18px;line-height:1}
+    .empty{margin:0 auto 80px;max-width:580px;padding:42px 24px;text-align:center;border:1px dashed #7772b0;background:#141935bb;border-radius:16px}
+    .empty .glyph{font-size:56px;color:var(--gold);line-height:1}
+    .empty h2{font:italic bold 28px Georgia,serif;margin:13px 0;color:#ead8ff}
+    .empty p{color:#bcc1de;margin:0}
+    .empty code{color:#a8e6ff}
+    .footer{border-top:1px solid #65568b;text-align:center;padding:27px 16px 37px;color:#a6a6cb;font-size:12px}
+    dialog{background:#090d20;color:#faf7ff;border:1px solid #8a78bb;border-radius:13px;box-shadow:0 24px 70px #000c;padding:0;width:min(1100px,96vw);max-width:96vw;max-height:96vh;overflow:hidden}
+    dialog::backdrop{background:#02030ce8;backdrop-filter:blur(8px)}
+    .viewer-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 16px;background:#171632;border-bottom:1px solid #706092}
+    .viewer-title{font-weight:650;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .viewer-controls{display:flex;align-items:center;gap:8px;flex-shrink:0}
+    .view-btn{display:inline-grid;place-items:center;border:1px solid #77719d;background:#272249;color:#fff;border-radius:8px;min-height:36px;min-width:38px;padding:6px 10px;text-decoration:none}
+    .view-btn:hover{background:#43326f}
+    .viewer-stage{min-height:160px;max-height:calc(96vh - 130px);display:grid;place-items:center;background:#050611}
+    .viewer-stage img{max-width:100%;max-height:calc(96vh - 132px);width:auto;height:auto;object-fit:contain;display:block}
+    .viewer-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 17px;color:#b7b2d0;font-size:12px}
+    .viewer-foot a{color:#9cecff}
+    [hidden]{display:none!important}
+    @media(max-width:560px){.wrap{width:min(100% - 24px,1340px)}.topbar{min-height:60px}.hero{padding:48px 4px 28px}.moon{font-size:44px}.toolbar{gap:9px;padding:12px}.search-wrap{flex-basis:100%}.sort{flex:1}.count{margin-left:0}.gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.caption{padding:9px 10px}.caption strong{font-size:12px}.viewer-bar{padding:9px}.viewer-controls{gap:5px}.view-btn{min-width:32px;padding:5px 7px}.viewer-title{max-width:38vw;font-size:12px}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar wrap">
+      <a class="brand" href="./"><span class="star">✦</span> SNO'S GALLERY</a>
+      <a class="back" href="https://snoplay.com">SnoPlay ↗</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="moon" aria-hidden="true">☾</div>
+      <div class="kicker">A LITTLE GALLERY OF CHAOS</div>
+      <h1>Sno's Gallery</h1>
+      <p>Pictures, memories, experiments and whatever else belongs on the wall. New images appear when they're uploaded to GitHub.</p>
+      <div class="rule" aria-hidden="true"></div>
+    </section>
+
+    <div class="toolbar" aria-label="Gallery controls">
+      <label class="search-wrap" for="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Search pictures…" autocomplete="off"></label>
+      <label for="sort" class="sr-only" hidden>Sort photos</label>
+      <select id="sort" class="sort" aria-label="Sort pictures">
+        <option value="reverse">Name: Z–A</option>
+        <option value="forward">Name: A–Z</option>
+        <option value="random">Shuffle</option>
+      </select>
+      <span id="count" class="count" role="status" aria-live="polite">Loading…</span>
+    </div>
+
+    <section id="gallery" class="gallery" aria-label="Uploaded pictures"></section>
+    <div id="empty" class="empty" hidden>
+      <div class="glyph" aria-hidden="true">✧</div>
+      <h2 id="empty-title">Waiting for the first picture…</h2>
+      <p id="empty-info">Upload pictures to the GitHub <code>photos/</code> folder and they'll appear here automatically.</p>
+    </div>
+  </main>
+
+  <footer class="footer">✦ SnoPlay · A pocket of moonlit pixels · Powered by Perl &amp; GitHub Pages</footer>
+
+  <dialog id="viewer" aria-label="Photo viewer">
+    <div class="viewer-bar">
+      <span id="viewerTitle" class="viewer-title"></span>
+      <div class="viewer-controls">
+        <button class="view-btn" id="prev" type="button" aria-label="Previous image">❮</button>
+        <button class="view-btn" id="next" type="button" aria-label="Next image">❯</button>
+        <button class="view-btn" id="close" type="button" aria-label="Close viewer">✕</button>
+      </div>
+    </div>
+    <div class="viewer-stage"><img id="viewerImage" alt=""></div>
+    <div class="viewer-foot"><span id="viewerCount"></span><a id="original" target="_blank" rel="noopener noreferrer" href="#">Open original ↗</a></div>
+  </dialog>
+
+  <script>
+    'use strict';
+    const gallery = document.getElementById('gallery');
+    const empty = document.getElementById('empty');
+    const search = document.getElementById('search');
+    const sort = document.getElementById('sort');
+    const count = document.getElementById('count');
+    const viewer = document.getElementById('viewer');
+    const viewerImage = document.getElementById('viewerImage');
+    const viewerTitle = document.getElementById('viewerTitle');
+    const viewerCount = document.getElementById('viewerCount');
+    const original = document.getElementById('original');
+    let pictures = [];
+    let shown = [];
+    let current = 0;
+
+    function urlFor(src) {
+      // Preserve directory slashes but safely encode spaces, #, ?, Unicode, etc.
+      return src.split('/').map(encodeURIComponent).join('/');
+    }
+
+    function showEmpty(title, message) {
+      gallery.hidden = true;
+      empty.hidden = false;
+      document.getElementById('empty-title').textContent = title;
+      document.getElementById('empty-info').textContent = message;
+    }
+
+    function render() {
+      const term = search.value.trim().toLowerCase();
+      shown = pictures.filter(photo => (photo.title + ' ' + photo.src).toLowerCase().includes(term));
+      if (sort.value === 'reverse') shown.reverse();
+      if (sort.value === 'random') {
+        shown = shown.slice();
+        for (let i = shown.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const temp = shown[i]; shown[i] = shown[j]; shown[j] = temp;
+        }
+      }
+
+      count.textContent = String(shown.length) + (shown.length === 1 ? ' picture' : ' pictures');
+      gallery.replaceChildren();
+      if (!shown.length) {
+        showEmpty(pictures.length ? 'No matches found' : 'Waiting for the first picture…',
+          pictures.length ? 'Try a different search.' : 'Upload pictures to the photos/ folder in GitHub. They will appear here automatically.');
+        return;
+      }
+      empty.hidden = true;
+      gallery.hidden = false;
+      const fragment = document.createDocumentFragment();
+      shown.forEach((photo, index) => {
+        const tile = document.createElement('article');
+        tile.className = 'tile';
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.setAttribute('aria-label', 'View ' + photo.title);
+        const thumbnail = document.createElement('div');
+        thumbnail.className = 'thumb';
+        const img = document.createElement('img');
+        img.src = urlFor(photo.src);
+        img.alt = photo.title;
+        img.loading = index > 5 ? 'lazy' : 'eager';
+        img.decoding = 'async';
+        thumbnail.appendChild(img);
+        const caption = document.createElement('div');
+        caption.className = 'caption';
+        const title = document.createElement('strong');
+        title.textContent = photo.title;
+        title.title = photo.title;
+        const arrow = document.createElement('span');
+        arrow.textContent = '↗';
+        arrow.setAttribute('aria-hidden', 'true');
+        caption.append(title, arrow);
+        button.append(thumbnail, caption);
+        button.addEventListener('click', () => openViewer(index));
+        tile.appendChild(button);
+        fragment.appendChild(tile);
+      });
+      gallery.appendChild(fragment);
+    }
+
+    function updateViewer() {
+      if (!shown.length) return;
+      current = (current + shown.length) % shown.length;
+      const photo = shown[current];
+      const url = urlFor(photo.src);
+      viewerImage.src = url;
+      viewerImage.alt = photo.title;
+      viewerTitle.textContent = photo.title;
+      viewerCount.textContent = String(current + 1) + ' / ' + String(shown.length);
+      original.href = url;
+    }
+
+    function openViewer(index) {
+      current = index;
+      updateViewer();
+      if (!viewer.open) viewer.showModal();
+    }
+
+    document.getElementById('prev').addEventListener('click', () => { current--; updateViewer(); });
+    document.getElementById('next').addEventListener('click', () => { current++; updateViewer(); });
+    document.getElementById('close').addEventListener('click', () => viewer.close());
+    viewer.addEventListener('click', event => { if (event.target === viewer) viewer.close(); });
+    document.addEventListener('keydown', event => {
+      if (!viewer.open) return;
+      if (event.key === 'ArrowRight') { event.preventDefault(); current++; updateViewer(); }
+      if (event.key === 'ArrowLeft') { event.preventDefault(); current--; updateViewer(); }
+    });
+    let touchX = null;
+    viewer.addEventListener('touchstart', event => {
+      if (event.touches.length === 1) touchX = event.touches[0].clientX;
+    }, {passive:true});
+    viewer.addEventListener('touchend', event => {
+      if (touchX === null || !event.changedTouches.length) return;
+      const distance = event.changedTouches[0].clientX - touchX;
+      touchX = null;
+      if (Math.abs(distance) > 55) { current += distance < 0 ? 1 : -1; updateViewer(); }
+    }, {passive:true});
+    search.addEventListener('input', render);
+    sort.addEventListener('change', render);
+
+    async function loadGallery() {
+      try {
+        const response = await fetch('./gallery.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Manifest returned ' + response.status);
+        const manifest = await response.json();
+        if (!Array.isArray(manifest.images)) throw new Error('Missing image list');
+        pictures = manifest.images.filter(item =>
+          item && typeof item.src === 'string' && /^photos\/[^?#]+$/i.test(item.src) &&
+          !item.src.split('/').includes('..') && typeof item.title === 'string'
+        );
+        pictures.sort((a, b) => a.src.localeCompare(b.src, undefined, {numeric:true,sensitivity:'base'}));
+        render();
+      } catch (error) {
+        console.error('Gallery loading error:', error);
+        count.textContent = 'Unavailable';
+        showEmpty('Gallery is unavailable', 'The image list could not be loaded. Please try again later.');
+      }
+    }
+    loadGallery();
+  </script>
+</body>
+</html>
